@@ -125,3 +125,54 @@
       scan(totalReducer, 0)
     ).subscribe(console.log); // 1, 3, 6, 10, 15
 ```
+
+* takeWhile and takeUntil.
+
+* takewhile takes in an observable and will let it pass until the condition is true and will not let it pass once the condition becomes falsy as the observable gets completed when the condition is met. Takewhile takes a second arguement(boolean) which will emit/not-emit according to the boolean the last value which causes the completion of the observable.
+*takeUntil Emit values until provided observable emits. A (usecase)[https://alligator.io/angular/takeuntil-rxjs-unsubscribe/]
+
+```js
+    interval(1000).pipe(
+      mapTo(-1),
+      scan((accumulator, currentValue) => {
+        return accumulator + currentValue
+      }, 10),
+      filter(val => val > -1)
+    ).subscribe(console.log);
+```
+
+* Tap is used to check the values. Used as checkpoint while debugging. Tap does not do any modification of the data and does not return anything. It accepts next, complete and error. We should avoid writing logic in tap and it should only be used for checking of the values.
+```js
+    interval(1000).pipe(
+      mapTo(-1),
+      scan((accumulator, currentValue) => {
+        return accumulator + currentValue
+      }, 10),
+      tap(console.log),
+      filter(val => val > -1)
+    ).subscribe();
+```
+```js
+    interval(1000).pipe(
+      mapTo(-1),
+      scan((accumulator, currentValue) => {
+        return accumulator + currentValue
+      }, 10),
+      tap(console.log),
+      takeWhile(val => val > -1)
+    ).subscribe();
+```
+* In the above examples, in case of filter our tap will keep on giving us the values indicating that the observable has not been unsubscribed while in case of takeWhile the observable gets completed after the condition -1 is reached and we don't get any further values.
+
+* first : operator first takes just the first observable. It is a better option than using take(1) as we can provide our own logic in the function that it accepts.
+```js
+    const clickStream$ = fromEvent(document, 'click');
+    clickStream$.pipe(
+      map(event => ({
+          x: event['clientX'],
+          y: event['clientY']
+    })),
+      first(({y}) => y > 200) // obj destructuring to get only y
+    ).subscribe(console.log);
+```
+
