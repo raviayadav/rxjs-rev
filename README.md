@@ -298,4 +298,106 @@ mousedown$.pipe(
   ))
 ).subscribe(console.log) // as long as the mouseclick is down, it will count through interval and when it goes up the internal obs ends.
 ```
-* 
+* switchmap -> switchmap operator maps each value to an observable and then flattens the obs. It only maintains one active inner subscription at a time. So any time we map to a new inner subscription, the previous is completed.
+
+```js
+click$.pipe(
+  mergeMap(() => interval$)
+).subscribe(console.log); // when u click a new interval starts, when u click again, the previous completes a new interval starts unlike a new one as in mergemap.
+```
+* We use switchmap in the following example instead of mergeMap cos we want our requests to be cancelled as soon as the user types in something new and we care about the order of the responses. Switchmap will cancel the previous network requests if a new one is made.
+```js
+input$.pipe(
+  debounce(() => interval(1000)), // write ur logic in this function and return an observable.
+  pluck('target', 'value'), //this will trigger after every 1 sec
+  distinctUntilChanged(),
+  switchMap(searchTerm => {
+    return ajax.getJSON{`${BASE_URL}?${by_name}=${searchTerm}`}
+  })
+).subscribe(console.log)
+```
+* We should avoid switchMap for saves.
+
+* concatMap is similar to switchMap just that instead of completing the previous observable, it queues the new incoming observable. If the first inner observable doesnt complete, then the next observable will never be processed.
+
+```js
+click$.pipe(
+  mergeMap(() => interval$)
+).subscribe(console.log); // as interval is never ending, no new subsciptions are made
+```
+* In the following example, if we click quickly 3 times, then the first observable is processed with the other 2 in queue. So first finishes after counting to 3, then the next finishes after counting to 3 and then the last finishes counting to 3. This is the slowest method but it gives you response in order and useful when your next call is based on the values of the previous observable.
+```js
+    const interval$ = interval(1000).pipe(take(3));
+    const click$ = fromEvent(document, 'click');
+    click$.pipe(
+      concatMap(() => interval$)
+    ).subscribe(console.log);
+```
+* We use concatMap also when we need to save an order of requests on the client side.
+* Avoid concatMap when you have long running inner observables.
+
+* exhaustMap is used to ignore emissions when an inner observable is active with exhaustMap. It also maintains only one inner subscription at a time. While switchMap switches to the new subsciption and concatMap queues it, exhaustMap simply ignores the new subsciption until the inner subscription is completed.
+```js
+    const interval$ = interval(1000).pipe(take(3));
+    const click$ = fromEvent(document, 'click');
+    click$.pipe(
+      exhaustMap(() => interval$.pipe(take(3)))
+    ).subscribe(console.log);
+```
+* exhaustMap is used to implement the functionality of login button so the user can't spam click the login button or refresh button.
+
+* catchError is used for error handling. We need to remember that catchError completes our observable so we need to use it according to the use case.
+```js
+input$.pipe(
+  debounce(() => interval(1000)), // write ur logic in this function and return an observable.
+  pluck('target', 'value'), //this will trigger after every 1 sec
+  distinctUntilChanged(),
+  switchMap(searchTerm => {
+    return ajax.getJSON{`${BASE_URL}?${by_name}=${searchTerm}`}
+  }).pipe(
+    catchError(error => {
+      return empty() // import empty from rxjs, its an empty observable used when ur function needs to return an observable.
+    })
+  )
+).subscribe(console.log)
+```
+
+* polling lab ->
+
+```js
+startPolling$.pipe(
+  exhaustMap(() => timer(0, 500).pipe(
+    tap(() => pollinStatus.innerHTML="Active"),
+    switchMapTo(
+      ajax.getJSON(url).pipe(pluck('url'))
+    ),
+    takeUntil(stopPolling$),
+    finalize(() => pollinStatus.innerHTML = "Stopped")
+  ))
+).subscribe(url => dogImage.src = url);
+```
+
+* startWith sets up the first value of the stream.
+```js
+const numbers$ = of(1, 2, 3);
+numbers$.pipe(
+  startWith('a', 'b', 'c'),
+  endWith('x', 6, 'z')
+).subscribe(console.log)
+```
+* concat operator allows u to concat multiple observables in order. The queued observable will start when the previous finishes and so on.
+
+```js
+const interval$ = interval(1000);
+const delayed$ = empty().pipe(delay(1000));
+
+delayed$.pipe(
+  concat(
+    delayed$.pipe(startWith('3....')),
+    delayed$.pipe(startWith('2....')),
+    delayed$.pipe(startWith('1....')),
+    delayed$.pipe(startWith('Go!'))
+  ),
+  startWith('Get Ready!')
+).subscribe(console.log)
+```
