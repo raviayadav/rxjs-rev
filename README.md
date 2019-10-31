@@ -133,7 +133,7 @@ In Angular Observable, there are a publisher and subscriber. The publisher can c
 * takeWhile and takeUntil.
 
 * takewhile takes in an observable and will let it pass until the condition is true and will not let it pass once the condition becomes falsy as the observable gets completed when the condition is met. Takewhile takes a second arguement(boolean) which will emit/not-emit according to the boolean the last value which causes the completion of the observable.
-*takeUntil Emit values until provided observable emits. A (usecase)[https://alligator.io/angular/takeuntil-rxjs-unsubscribe/]
+*takeUntil Emit values until provided observable emits. A [usecase](https://alligator.io/angular/takeuntil-rxjs-unsubscribe/)
 
 ```js
     interval(1000).pipe(
