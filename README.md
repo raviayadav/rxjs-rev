@@ -1,5 +1,9 @@
 # RxjsRev
 
+## Definition
+
+In Angular Observable, there are a publisher and subscriber. The publisher can create an Observable instance that defines a subscriber function. The subscriber is receiving notification by executing the observable using subscribe() method and stop receiving the notification using the unsubscribe() method. 
+
 ## Creation operators
 
 * We can use the creation operators to create an observable.
